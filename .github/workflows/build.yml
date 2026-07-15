@@ -1,36 +1,26 @@
 name: Build APK
-
-on:
-  push:
-    branches: [ "main", "master" ]
-  workflow_dispatch:
-
+on: [push, workflow_dispatch]
 jobs:
   build:
     runs-on: ubuntu-latest
-    
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
+      - uses: actions/checkout@v4
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
-
-      - name: Setup Gradle 7.5
-        uses: gradle/actions/setup-gradle@v3
-        with:
-          gradle-version: 7.5
-
-      - name: Make gradlew executable
-        run: chmod +x gradlew || echo "No gradlew"
-
+      - name: Install Gradle 7.5 manually
+        run: |
+          wget https://services.gradle.org/distributions/gradle-7.5-bin.zip
+          unzip -q gradle-7.5-bin.zip
+          echo "$PWD/gradle-7.5/bin" >> $GITHUB_PATH
       - name: Build APK
-        run: gradle assembleDebug --no-daemon
-
+        run: |
+          gradle --version
+          gradle assembleDebug --no-daemon --stacktrace
       - name: Upload APK
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ESP-APK
